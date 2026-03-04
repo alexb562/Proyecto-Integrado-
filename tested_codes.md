@@ -38,8 +38,9 @@ delay(1);
 ---
 
 ### codigo obtencion BPM
+
 se supone que con este codigo empezamos a obtener datos de los bpm - pulsaciones
-*cambios aplicados sin aplicar*
+- *cambios aplicados sin proobar*
 ```c++
 #include <PulseSensorPlayground.h>
 
