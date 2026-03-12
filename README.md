@@ -159,6 +159,12 @@ convierte los valores ADM en valores de PPM. El script empieza cuando se detecta
 
 #### Creando script python que guarda los datos en CSV
 ```python
+pip3 --version
+pip3 install pyserial
+```
+
+
+```python
 import serial
 from datetime import datetime
 import csv
@@ -205,6 +211,20 @@ print("logging finished")
 [Link text](https://www.instructables.com/Capture-Data-From-Arduino-to-CSV-File-Using-PySeri/)
 - Sacamos el código de este tutorial cambiando el puerto al que estamos usando en el arduino. Se crea un archivo logging con el csv
 [Alt text](logging.png)
+
+11:21:45,  230
+11:21:45,BPM:  230
+11:21:45,BPM:  230
+11:21:45,BPM:  230
+11:21:45,BPM:  230
+11:21:45,BPM:  230
+11:21:45,BPM:  230
+11:21:45,BPM:  230
+11:21:45,BPM:  230
+11:21:45,BPM:  230
+11:21:45,BPM:  230
+11:21:45,BPM:  230
+
 
 
 ...
