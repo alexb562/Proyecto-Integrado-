@@ -158,8 +158,7 @@ Repetir todo otra vez.
 #  CODIGO FINAL
 
 
-```
-
+```c++
 #include <PulseSensorPlayground.h>
 
 const int PulseWire = A0;   // Salida del AD8232
