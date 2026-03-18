@@ -231,4 +231,23 @@ print("logging finished")
 
 
 ### 6. Aplicación en RaspiAlarm
+- Vamos a integrar varios sensores usando raspberry como cerebro central
+
 ...
+
+# Raspberry - configuración inicial
+
+##
+Lab2_ciberkaos
+Asir_2025
+ab 22571784
+
+
+1. Raspberry Imager - darle OS, información sobre red, habilitar ssh
+- ssh ab@192.168.1.184
+- sudo apt update && sudo apt upgrade -y
+
+2. Servicios
+- sudo apt install apache2
+- sudo apt install python3 && sudo apt install python3-pip
+- sudo apt install mariadb-server (mysql no está disponible en raspbian)
