@@ -251,3 +251,11 @@ ab 22571784
 - sudo apt install apache2
 - sudo apt install python3 && sudo apt install python3-pip
 - sudo apt install mariadb-server (mysql no está disponible en raspbian)
+
+
+3. Conexion de arduino con raspberry
+- `lsusb` para comprobar que el arduino lo tenemos conectado
+- `ls -la /dev/serial/by-id/` -> obtenemoe el serial en el qeu tenemos conectado el arduino a la rasp
+
+--> ahora vamos a crear otro script de python para que llame al arduino, al puerto en el que esta conectado, y a partir de ahi que el 
+arduino llame al codigo de python que ya hicimos para el sensor
