@@ -3,14 +3,14 @@ from datetime import datetime
 import csv
 
 #Open a csv file and set it up to receive comma delimited input
-logging = open('logging.csv',mode='a')
+logging = open('datos.csv',mode='a',buffering=1)
 writer = csv.writer(logging, delimiter=",", escapechar=' ', quoting=csv.QUOTE_NONE)
 
 #Open a serial port that is connected to an Arduino (below is Linux, Windows and Mac would be "COM4" or similar)
 #No timeout specified; program will wait until all serial data is received from Arduino
 #Port description will vary according to operating system. Linux will be in the form /dev/ttyXXXX
 #Windows and MAC will be COMX. Use Arduino IDE to find out name 'Tools -> Port'
-ser = serial.Serial('/dev/cu.usbmodem141201', 9600)
+ser = serial.Serial('/dev/cu.usbmodem141401', 9600)
 ser.flushInput()
 
 #Write out a single character encoded in utf-8; this is defalt encoding for Arduino serial comms
@@ -38,6 +38,7 @@ while True:
     
     #Write received data to CSV file
     writer.writerow([current_time,decoded_bytes])
+    ser.flush()
             
 # Close port and CSV file to exit
 ser.close()
