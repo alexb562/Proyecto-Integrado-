@@ -237,7 +237,7 @@ print("logging finished")
 
 # Raspberry - configuración inicial
 
-##
+## Inicial
 Lab2_ciberkaos
 Asir_2025
 ab 22571784
@@ -255,6 +255,20 @@ ab 22571784
 
 3. Conexion de arduino con raspberry
 - `lsusb` para comprobar que el arduino lo tenemos conectado
-- `ls -la /dev/serial/by-id/` -> obtenemos el serial en el qeu tenemos conectado el arduino a la rasp
+- `ls -la /dev/serial/by-id/` -> obtenemos el serial en el que tenemos conectado el arduino a la rasp
 
 - ejecutamos el script py conectándonos al puerto del arduino desde el raspberry
+
+
+![alt text](image-1.png)
+
+## Python en raspberry
+1. Crear una carpeta en ~/piarduino/proyecto-integrador que tiene todas las librerias necesarias (pip, os etc) para no tener conflictos
+[!alt text](crearLiberias.png)
+2. Copiamos el script anterior de python y lo pegamos en un archivo en esa carpeta
+3. Cambiamos el puerto en el script
+[!alt text](puertoCambiado.png)
+4. Ejecutamos
+[!alt text](pyEscuchar.png)
+[!alt text](pyImageCSV.png)
+-se ha creado y guardado el archivo exitosamente
