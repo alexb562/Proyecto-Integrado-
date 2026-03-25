@@ -171,7 +171,7 @@ int Threshold = 550;        // AJUSTAR según tu señal
 PulseSensorPlayground pulseSensor;
 
 void setup() {
-  Serial.begin(115200); //ACTUALIZADO PERO NO PROBADO - valor antiguo 115200 caracteres raros
+  Serial.begin(9600); //ACTUALIZADO PERO NO PROBADO - valor antiguo 115200 caracteres raros
   /*
   o bien cambiamos la velocidad de los baudios en el serial plotter a 115200
   o bien lo cambiamos en el codigo a 9600
