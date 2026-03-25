@@ -258,3 +258,6 @@ ab 22571784
 - `ls -la /dev/serial/by-id/` -> obtenemos el serial en el qeu tenemos conectado el arduino a la rasp
 
 - ejecutamos el script py conectándonos al puerto del arduino desde el raspberry
+
+
+![alt text](image-1.png)
