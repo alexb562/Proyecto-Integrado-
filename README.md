@@ -264,13 +264,13 @@ ab 22571784
 
 # Python en raspberry
 1. Crear una carpeta en ~/piarduino/proyecto-integrador que tiene todas las librerias necesarias (pip, os etc) para no tener conflictos
-[!alt text](crearLiberias.png)
+[alt text](crearLiberias.png)
 2. Copiamos el script anterior de python y lo pegamos en un archivo en esa carpeta
 3. Cambiamos el puerto en el script
-[!alt text](puertoCambiado.png)
+![alt text](puertoCambiado.png)
 4. Ejecutamos
-[!alt text](pyEscuchar.png)
-[!alt text](pyImageCSV.png)
+![alt text](pyEscuchar.png)
+![alt text](pyImageCSV.png)
 -se ha creado y guardado el archivo exitosamente
 
 # Integrar lecturas en Mariadb
