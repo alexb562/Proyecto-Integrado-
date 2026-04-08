@@ -383,7 +383,8 @@ sudo touch /home/pi/raspialarma/sensores/captura_sensor.py
 ```
 
 ## prueba inicial para insercion de datos
-```mysql
+
+```py
 #!/usr/bin/env python3
 
 import MySQLdb
@@ -454,4 +455,22 @@ finally:
         pass
 ```
 
+- Despues de creasr el script tendremos qe darle permisos, y ademas darle permisos al archivo de logs, para que el script de python sea capaz de modificar el archivo
 
+
+
+`ab@alexbea:/home/pi/raspialarma/logs $ cat raspialarma.log 
+2026-04-08 09:51:25.599453 - Lectura guardada correctamente.`
+
+```sql
+Database changed
+MariaDB [raspialarm]> select * from lecturas_sensores;
++----+--------------+--------------+----------+----------+----------+---------------------+-----------------+----------------------------------------+---------------+-----------------+
+| id | raspberry_id | nombresensor | lectura1 | lectura2 | lectura3 | fecha_hora          | alumnoEncargado | descripcionSensor                      | estado_alerta | enviado_central |
++----+--------------+--------------+----------+----------+----------+---------------------+-----------------+----------------------------------------+---------------+-----------------+
+|  1 | RPI_BEAALEX  | SENSOR_BPM   |    25.50 |    60.00 |     0.00 | 2026-04-08 09:46:40 | BEA_ALEX        | Prueba inicial de insercion en MariaDB | normal        |               0 |
+|  2 | RPI_BEAALEX  | SENSOR_BPM   |    25.50 |    60.00 |     0.00 | 2026-04-08 09:48:06 | BEA_ALEX        | Prueba inicial de insercion en MariaDB | normal        |               0 |
+|  3 | RPI_BEAALEX  | SENSOR_BPM   |    25.50 |    60.00 |     0.00 | 2026-04-08 09:51:25 | BEA_ALEX        | Prueba inicial de insercion en MariaDB | normal        |               0 |
++----+--------------+--------------+----------+----------+----------+---------------------+-----------------+----------------------------------------+---------------+-----------------+
+3 rows in set (0.001 sec)
+```
