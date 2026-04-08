@@ -378,6 +378,80 @@ docs  logs  sensores
 
 ```bash
 sudo apt install python3-pip python3-mysqldb -y
+sudo touch /home/pi/raspialarma/sensores/captura_sensor.py
+
+```
+
+## prueba inicial para insercion de datos
+```mysql
+#!/usr/bin/env python3
+
+import MySQLdb
+from datetime import datetime
+
+def escribir_log(mensaje):
+    with open("/home/pi/raspialarma/logs/raspialarma.log", "a") as log:
+        log.write(f"{datetime.now()} - {mensaje}\n")
+
+try:
+    conexion = MySQLdb.connect(
+        host="localhost",
+        user="raspiuser",
+        passwd="raspi1234",
+        db="raspialarm"
+    )
+
+    cursor = conexion.cursor()
+
+    raspberry_id = "RPI_BEAALEX"
+    nombresensor = "SENSOR_BPM"
+    lectura1 = 25.50
+    lectura2 = 60.00
+    lectura3 = 0.00
+    fecha_hora = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    alumnoEncargado = "BEA_ALEX"
+    descripcionSensor = "Prueba inicial de inserción en MariaDB"
+    estado_alerta = "normal"
+    enviado_central = 0
+
+    sql = """
+        INSERT INTO lecturas_sensores
+        (raspberry_id, nombresensor, lectura1, lectura2, lectura3, fecha_hora,
+         alumnoEncargado, descripcionSensor, estado_alerta, enviado_central)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+    """
+
+    valores = (
+        raspberry_id,
+        nombresensor,
+        lectura1,
+        lectura2,
+        lectura3,
+        fecha_hora,
+        alumnoEncargado,
+        descripcionSensor,
+        estado_alerta,
+        enviado_central
+    )
+
+    cursor.execute(sql, valores)
+    conexion.commit()
+
+    mensaje = "Lectura guardada correctamente."
+    print(mensaje)
+    escribir_log(mensaje)
+
+except Exception as e:
+    error = f"Error: {e}"
+    print(error)
+    escribir_log(error)
+
+finally:
+    try:
+        cursor.close()
+        conexion.close()
+    except:
+        pass
 ```
 
 
