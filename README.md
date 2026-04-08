@@ -357,4 +357,27 @@ MariaDB [raspialarm]> FLUSH PRIVILEGES;
 Query OK, 0 rows affected (0.002 sec)
 
 ```
+```bash
+ab@alexbea:~ $ sudo mkdir -p /home/pi/raspialarma/sensores
+ab@alexbea:~ $ sudo mkdir -p /home/pi/raspialarma/logs
+ab@alexbea:~ $ sudo mkdir -p /home/pi/raspialarma/docs
+ab@alexbea:~ $ ls -R /home/pi/raspialarma
+/home/pi/raspialarma:
+docs  logs  sensores
+
+/home/pi/raspialarma/docs:
+
+/home/pi/raspialarma/logs:
+
+/home/pi/raspialarma/sensores:
+```
+
+
+
+
+
+```bash
+sudo apt install python3-pip python3-mysqldb -y
+```
+
 
