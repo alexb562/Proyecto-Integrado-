@@ -262,7 +262,7 @@ ab 22571784
 
 ![alt text](image-1.png)
 
-## Python en raspberry
+# Python en raspberry
 1. Crear una carpeta en ~/piarduino/proyecto-integrador que tiene todas las librerias necesarias (pip, os etc) para no tener conflictos
 [!alt text](crearLiberias.png)
 2. Copiamos el script anterior de python y lo pegamos en un archivo en esa carpeta
@@ -272,3 +272,89 @@ ab 22571784
 [!alt text](pyEscuchar.png)
 [!alt text](pyImageCSV.png)
 -se ha creado y guardado el archivo exitosamente
+
+# Integrar lecturas en Mariadb
+- creación de bases de datos y tabla
+```mysql
+MariaDB [(none)]> create database if not exists raspialarm
+    -> ;
+Query OK, 1 row affected (0.005 sec)
+
+MariaDB [(none)]> show databases;
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| mariamiamor        |
+| mysql              |
+| performance_schema |
+| raspialarm         |
+| sys                |
++--------------------+
+6 rows in set (0.004 sec)
+
+MariaDB [(none)]> use raspialarm;
+Database changed
+MariaDB [raspialarm]> CREATE TABLE lecturas_sensores (
+    ->     id INT AUTO_INCREMENT PRIMARY KEY,
+    ->     raspberry_id VARCHAR(50) NOT NULL,
+    ->     nombresensor VARCHAR(100) NOT NULL,
+    ->     lectura1 DECIMAL(10,2),
+    ->     lectura2 DECIMAL(10,2),
+    ->     lectura3 DECIMAL(10,2),
+    ->     fecha_hora DATETIME NOT NULL,
+    ->     alumnoEncargado VARCHAR(100) NOT NULL,
+    ->     descripcionSensor VARCHAR(255),
+    ->     estado_alerta VARCHAR(20) NOT NULL DEFAULT 'normal',
+    ->     enviado_central TINYINT(1) NOT NULL DEFAULT 0
+    -> );
+Query OK, 0 rows affected (0.034 sec)
+
+MariaDB [raspialarm]> describe lecturas_sensores;
++-------------------+---------------+------+-----+---------+----------------+
+| Field             | Type          | Null | Key | Default | Extra          |
++-------------------+---------------+------+-----+---------+----------------+
+| id                | int(11)       | NO   | PRI | NULL    | auto_increment |
+| raspberry_id      | varchar(50)   | NO   |     | NULL    |                |
+| nombresensor      | varchar(100)  | NO   |     | NULL    |                |
+| lectura1          | decimal(10,2) | YES  |     | NULL    |                |
+| lectura2          | decimal(10,2) | YES  |     | NULL    |                |
+| lectura3          | decimal(10,2) | YES  |     | NULL    |                |
+| fecha_hora        | datetime      | NO   |     | NULL    |                |
+| alumnoEncargado   | varchar(100)  | NO   |     | NULL    |                |
+| descripcionSensor | varchar(255)  | YES  |     | NULL    |                |
+| estado_alerta     | varchar(20)   | NO   |     | normal  |                |
+| enviado_central   | tinyint(1)    | NO   |     | 0       |                |
++-------------------+---------------+------+-----+---------+----------------+
+11 rows in set (0.003 sec)
+
+MariaDB [raspialarm]> show create table lecturas_sensores;
++-------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Table             | Create Table                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
++-------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| lecturas_sensores | CREATE TABLE `lecturas_sensores` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `raspberry_id` varchar(50) NOT NULL,
+  `nombresensor` varchar(100) NOT NULL,
+  `lectura1` decimal(10,2) DEFAULT NULL,
+  `lectura2` decimal(10,2) DEFAULT NULL,
+  `lectura3` decimal(10,2) DEFAULT NULL,
+  `fecha_hora` datetime NOT NULL,
+  `alumnoEncargado` varchar(100) NOT NULL,
+  `descripcionSensor` varchar(255) DEFAULT NULL,
+  `estado_alerta` varchar(20) NOT NULL DEFAULT 'normal',
+  `enviado_central` tinyint(1) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci |
++-------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+MariaDB [raspialarm]> CREATE USER 'raspiuser'@'localhost' IDENTIFIED BY 'raspi1234';
+Query OK, 0 rows affected (0.005 sec)
+
+MariaDB [raspialarm]> GRANT ALL PRIVILEGES ON raspialarm.* TO 'raspiuser'@'localhost';
+Query OK, 0 rows affected (0.003 sec)
+
+MariaDB [raspialarm]> FLUSH PRIVILEGES;
+Query OK, 0 rows affected (0.002 sec)
+
+```
+
