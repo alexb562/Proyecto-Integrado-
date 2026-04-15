@@ -489,5 +489,191 @@ source env/bin/activate
 
 ---
 
+## Prueba real de incorporación de datos 
+- Instalamos mysql python connector
+```python
+pip install mysql-connector-python
+```
+- creamos un script que integra los 2 scripts anteriores (sensores y mysql) para subir las lecturas directamente a la base de datos
+```python
+#!/usr/bin/env python3
+import serial
+import mysql.connector
+from mysql.connector import Error
+from datetime import datetime
+import time
 
-alex no tiene ganas de tonterias - mentiroso
+# ============ CONFIGURATION ============
+PUERTO = "/dev/ttyACM0"
+BAUDIOS = 9600
+INTERVALO_SEG = 5  # average and insert every 5 seconds
+
+DB_CONFIG = {
+    "host": "localhost",
+    "user": "raspiuser",
+    "password": "raspi1234",
+    "database": "raspialarm"
+}
+
+RASPBERRY_ID = "RPI_BEAALEX"
+ALUMNO_ENCARGADO = "BEA_ALEX"
+DESCRIPCION_SENSOR = "Promedio de lecturas BPM cada 5s"
+ESTADO_ALERTA = "normal"
+
+LOG_FILE = "/home/pi/raspialarma/logs/raspialarma.log"
+TABLE_NAME = "lecturas_sensores"
+
+# ============ FUNCTIONS ============
+
+def escribir_log(mensaje):
+    try:
+        with open(LOG_FILE, "a") as log:
+            timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            log.write(f"{timestamp} - {mensaje}\n")
+    except Exception as e:
+        print(f"Error escribiendo log: {e}")
+
+def parsear_linea(linea):
+    if "BPM:" in linea:
+        try:
+            partes = linea.split(":")
+            if len(partes) == 2:
+                return float(partes[1].strip())
+        except ValueError:
+            escribir_log(f"Error parseando valor BPM: {linea}")
+    return None
+
+def conectar_db():
+    try:
+        conexion = mysql.connector.connect(**DB_CONFIG)
+        if conexion.is_connected():
+            escribir_log("Conexión a MariaDB establecida")
+            return conexion
+    except Error as e:
+        escribir_log(f"Error conectando a base de datos: {e}")
+        return None
+
+def insertar_promedio(conexion, promedio):
+    if not conexion or not conexion.is_connected():
+        conexion = conectar_db()
+        if not conexion:
+            return False, conexion
+    try:
+        cursor = conexion.cursor()
+        sql = f"""
+            INSERT INTO {TABLE_NAME}
+            (raspberry_id, nombresensor, lectura1, lectura2, lectura3, fecha_hora,
+             alumnoEncargado, descripcionSensor, estado_alerta, enviado_central)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """
+        valores = (
+            RASPBERRY_ID,
+            "SENSOR_BPM",
+            float(promedio) if promedio is not None else None,
+            None,
+            None,
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            ALUMNO_ENCARGADO,
+            DESCRIPCION_SENSOR,
+            ESTADO_ALERTA,
+            0
+        )
+        cursor.execute(sql, valores)
+        conexion.commit()
+        cursor.close()
+        if promedio is None:
+            escribir_log("Insertado promedio NULL (no lecturas en el intervalo)")
+            print("✓ Insertado fila con lectura NULL")
+        else:
+            escribir_log(f"Insertado promedio {promedio:.1f}")
+            print(f"✓ Insertado promedio {promedio:.1f}")
+        return True, conexion
+    except Error as e:
+        escribir_log(f"Error insertando en base de datos: {e}")
+        print(f"✗ Error insertando en DB: {e}")
+        return False, conexion
+
+# ============ MAIN ============
+
+def main():
+    conexion = conectar_db()
+    if not conexion:
+        print("ERROR: No se pudo conectar a la base de datos. Abortando.")
+        escribir_log("FALLO: No se pudo conectar a la base de datos al iniciar")
+        return
+
+    try:
+        ser = serial.Serial(PUERTO, BAUDIOS, timeout=1)
+        escribir_log(f"Puerto serie abierto: {PUERTO}")
+        print(f"✓ Escuchando en {PUERTO} a {BAUDIOS} baud...")
+        print(f"Promediando lecturas cada {INTERVALO_SEG} segundos. Presiona Ctrl+C para detener.\n")
+
+        buffer_vals = []
+        window_start = time.time()
+
+        while True:
+            try:
+                raw = ser.readline()
+            except serial.SerialException as e:
+                escribir_log(f"Error leyendo puerto serie: {e}")
+                print(f"✗ Error leyendo puerto serie: {e}")
+                time.sleep(1)
+                continue
+
+            if raw:
+                try:
+                    linea = raw.decode("utf-8", errors="ignore").strip()
+                except UnicodeDecodeError:
+                    escribir_log("Error decodificando datos serial")
+                    linea = None
+
+                if linea:
+                    val = parsear_linea(linea)
+                    if val is not None:
+                        buffer_vals.append(val)
+                        print(f"[{datetime.now().strftime('%H:%M:%S')}] Lectura capturada: {val:.1f} (buffer {len(buffer_vals)})")
+
+            now = time.time()
+            if now - window_start >= INTERVALO_SEG:
+                promedio = sum(buffer_vals) / len(buffer_vals) if buffer_vals else None
+                if promedio is not None:
+                    print(f"\n>>> Intervalo terminado. Promedio = {promedio:.1f}")
+                else:
+                    print("\n>>> Intervalo terminado. Sin lecturas -> INSERT NULL")
+                exito, conexion = insertar_promedio(conexion, promedio)
+                if not exito:
+                    escribir_log("Fallo inserción; se intentará reconectar para el siguiente ciclo")
+                    conexion = conectar_db()
+                buffer_vals = []
+                window_start = now
+
+            time.sleep(0.05)
+
+    except FileNotFoundError:
+        print(f"ERROR: Puerto {PUERTO} no encontrado")
+        escribir_log(f"ERROR: Puerto {PUERTO} no encontrado")
+    except KeyboardInterrupt:
+        escribir_log("Programa detenido por usuario (Ctrl+C)")
+        print("\n\n✓ Programa detenido correctamente")
+    except Exception as e:
+        escribir_log(f"Error inesperado: {e}")
+        print(f"✗ Error inesperado: {e}")
+    finally:
+        try:
+            if ser and ser.is_open:
+                ser.close()
+                print("✓ Puerto serie cerrado")
+        except NameError:
+            pass
+        if conexion and conexion.is_connected():
+            conexion.close()
+            escribir_log("Conexión a base de datos cerrada")
+            print("✓ Conexión a base de datos cerrada")
+
+if __name__ == "__main__":
+    main()
+```
+- El script coge un promedio cada 5 segundos y inserta el valor en un registro
+
+![alt text](lecturaFinalPrimero.png)
+- Aquí hemos logrado lecturas iniciales en vivo, vamos a seguir refinando las lecturas porque tenemos que ajustar dónde se pone los sensores en el cuerpo
