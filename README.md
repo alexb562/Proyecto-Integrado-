@@ -474,3 +474,20 @@ MariaDB [raspialarm]> select * from lecturas_sensores;
 +----+--------------+--------------+----------+----------+----------+---------------------+-----------------+----------------------------------------+---------------+-----------------+
 3 rows in set (0.001 sec)
 ```
+
+
+
+##### Para la activacion del entorno en python 
+```bash
+source env/bin/activate
+```
+
+![[script_python]]
+![[valores.png]]
+![[valores2.png]]
+
+
+---
+
+
+alex no tiene ganas de tonterias - mentiroso
