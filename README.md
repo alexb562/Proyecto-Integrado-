@@ -482,9 +482,9 @@ MariaDB [raspialarm]> select * from lecturas_sensores;
 source env/bin/activate
 ```
 
-![[script_python]]
-![[valores.png]]
-![[valores2.png]]
+![alt text](img/script_python.png)
+![alt text](img/valores.png)
+![alt text](img/valores2.png)
 
 
 ---
@@ -677,3 +677,101 @@ if __name__ == "__main__":
 
 ![alt text](lecturaFinalPrimero.png)
 - Aquí hemos logrado lecturas iniciales en vivo, vamos a seguir refinando las lecturas porque tenemos que ajustar dónde se pone los sensores en el cuerpo
+
+## Crear una interfaz gráfica de web
+```bash
+sudo systemctl status apache2
+#versión activado
+sudo systemctl status mariadb
+#version activado
+sudo apt install php
+php -v
+```
+
+### Crear estructura
+```bash
+sudo mkdir -p /var/www/html/raspialarma
+sudo chown -R $USER:$USER /var/www/html/raspialarma
+nano conexion.php
+```
+```php
+<?php
+$host = "localhost";
+$usuario = "raspiuser";
+$contrasena = "raspi1234";
+$basedatos = "raspialarm";
+
+$conexion = new mysqli($host, $usuario, $contrasena, $basedatos);
+
+if ($conexion->connect_error) {
+    die("Error de conexión: " . $conexion->connect_error);
+}
+
+$conexion->set_charset("utf8");
+?>
+```
+```bash
+nano listar.php
+```
+```php
+<?php
+include("conexion.php");
+
+$sql = "SELECT * FROM lecturas_sensores ORDER BY fecha_hora DESC";
+$resultado = $conexion->query($sql);
+?>
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Lecturas RaspyAlarma</title>
+</head>
+<body>
+
+<h1>Lecturas almacenadas en RaspyAlarma</h1>
+
+<?php
+if ($resultado->num_rows > 0) {
+    echo "<table border='1' cellpadding='5' cellspacing='0'>";
+    echo "<tr>
+            <th>ID</th>
+            <th>Raspberry</th>
+            <th>Sensor</th>
+            <th>Lectura 1</th>
+            <th>Lectura 2</th>
+            <th>Lectura 3</th>
+            <th>Fecha y hora</th>
+            <th>Alumno</th>
+            <th>Descripción</th>
+            <th>Estado alerta</th>
+            <th>Enviado central</th>
+          </tr>";
+
+    while ($fila = $resultado->fetch_assoc()) {
+        echo "<tr>";
+        echo "<td>" . $fila["id"] . "</td>";
+        echo "<td>" . $fila["raspberry_id"] . "</td>";
+        echo "<td>" . $fila["nombresensor"] . "</td>";
+        echo "<td>" . $fila["lectura1"] . "</td>";
+        echo "<td>" . $fila["lectura2"] . "</td>";
+        echo "<td>" . $fila["lectura3"] . "</td>";
+        echo "<td>" . $fila["fecha_hora"] . "</td>";
+        echo "<td>" . $fila["alumnoEncargado"] . "</td>";
+        echo "<td>" . $fila["descripcionSensor"] . "</td>";
+        echo "<td>" . $fila["estado_alerta"] . "</td>";
+        echo "<td>" . $fila["enviado_central"] . "</td>";
+        echo "</tr>";
+    }
+
+    echo "</table>";
+} else {
+    echo "<p>No hay registros en la base de datos.</p>";
+}
+
+$conexion->close();
+?>
+
+</body>
+</html>
+```
