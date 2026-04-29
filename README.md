@@ -775,3 +775,506 @@ $conexion->close();
 </body>
 </html>
 ```
+![alt text](tablaHTMLExito.png)
+
+- Ahora se cambia el campo desde binario a una cadena con si o no
+
+```php
+while ($fila = mysqli_fetch_assoc($resultado)) {
+        $enviado = ($fila["enviado_central"] == 1) ? "Sí" : "No";
+        echo "<tr>";
+        echo "<td>" . $fila["id"] . "</td>";
+        echo "<td>" . $fila["raspberry_id"] . "</td>";
+        echo "<td>" . $fila["nombresensor"] . "</td>";
+        echo "<td>" . $fila["lectura1"] . "</td>";
+        echo "<td>" . $fila["lectura2"] . "</td>";
+        echo "<td>" . $fila["lectura3"] . "</td>";
+        echo "<td>" . $fila["fecha_hora"] . "</td>";
+        echo "<td>" . $fila["alumnoEncargado"] . "</td>";
+        echo "<td>" . $fila["descripcionSensor"] . "</td>";
+        echo "<td>" . $fila["estado_alerta"] . "</td>";
+        echo "<td>" . $fila["enviado_central"] . "</td>";
+        echo "</tr>";
+    }
+```
+
+- Y css
+```css
+<head>
+    <meta charset="UTF-8">
+    <title>Lecturas RaspyAlarma</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f8;
+            margin: 20px;
+        }
+
+        h1 {
+            color: #1f3c88;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        th {
+            background-color: #1f3c88;
+            color: white;
+            padding: 10px;
+        }
+
+        td {
+            padding: 8px;
+            border: 1px solid #ccc;
+            text-align: center;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+```
+
+![alt text](tablaActualizadaHTML.png)
+
+- Se cambia el color de las alertas, se implemeta un rango para salir con alertas diferentes que corresponden a colores diferentes
+![alt text](lecturasConRangoFinal.png)
+
+
+- Las 10 últimas lecturas
+```php
+<?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+include("conexion.php");
+
+if (!$conexion) {
+    die("Error de conexión: " . mysqli_connect_error());
+}
+
+$sql = "SELECT * FROM lecturas_sensores ORDER BY fecha_hora DESC LIMIT 10";
+$resultado = $conexion->query($sql);
+
+if (!$resultado) {
+    die("Error en la consulta: " . $conexion->error);
+}
+?>
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Últimas lecturas</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f8;
+            margin: 20px;
+        }
+
+        h1 {
+            color: #1f3c88;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        th {
+            background-color: #1f3c88;
+            color: white;
+            padding: 10px;
+        }
+
+        td {
+            padding: 8px;
+            border: 1px solid #ccc;
+            text-align: center;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        .alerta-normal {
+            background-color: #d4edda;
+            color: #155724;
+            font-weight: bold;
+        }
+
+        .alerta-advertencia {
+            background-color: #fff3cd;
+            color: #856404;
+            font-weight: bold;
+        }
+
+        .alerta-critico {
+            background-color: #f8d7da;
+            color: #721c24;
+            font-weight: bold;
+        }
+
+        .alerta-desconocida {
+            background-color: #e2e3e5;
+            color: #383d41;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+<h1>Últimas 10 lecturas registradas</h1>
+
+<?php
+if ($resultado->num_rows > 0) {
+    echo "<table>";
+    echo "<tr>
+            <th>ID</th>
+            <th>Raspberry</th>
+            <th>Sensor</th>
+            <th>Lectura 1</th>
+            <th>Lectura 2</th>
+            <th>Lectura 3</th>
+            <th>Fecha y hora</th>
+            <th>Estado alerta</th>
+          </tr>";
+
+    while ($fila = $resultado->fetch_assoc()) {
+        $lectura1 = $fila["lectura1"];
+
+        if ($lectura1 === null || $lectura1 === "") {
+            $estado_mostrado = "Sin dato";
+            $clase_alerta = "alerta-desconocida";
+        } else {
+            $valor = floatval($lectura1);
+
+            if ($valor >= 60 && $valor <= 100) {
+                $estado_mostrado = "Normal";
+                $clase_alerta = "alerta-normal";
+            } elseif ($valor >= 101 && $valor <= 150) {
+                $estado_mostrado = "Advertencia";
+                $clase_alerta = "alerta-advertencia";
+            } elseif ($valor >= 151) {
+                $estado_mostrado = "Crítico";
+                $clase_alerta = "alerta-critico";
+            } else {
+                $estado_mostrado = "Fuera de rango";
+                $clase_alerta = "alerta-desconocida";
+            }
+        }
+
+        echo "<tr>";
+        echo "<td>" . htmlspecialchars($fila["id"]) . "</td>";
+        echo "<td>" . htmlspecialchars($fila["raspberry_id"]) . "</td>";
+        echo "<td>" . htmlspecialchars($fila["nombresensor"]) . "</td>";
+        echo "<td>" . htmlspecialchars($fila["lectura1"]) . "</td>";
+        echo "<td>" . htmlspecialchars($fila["lectura2"]) . "</td>";
+        echo "<td>" . htmlspecialchars($fila["lectura3"]) . "</td>";
+        echo "<td>" . htmlspecialchars($fila["fecha_hora"]) . "</td>";
+        echo "<td class='" . $clase_alerta . "'>" . $estado_mostrado . "</td>";
+        echo "</tr>";
+    }
+
+    echo "</table>";
+} else {
+    echo "<p>No hay lecturas disponibles.</p>";
+}
+
+$conexion->close();
+?>
+
+</body>
+</html>
+```
+![alt text](ultimasLecturasRango.png)
+
+
+
+
+
+
+
+- Crear un resumen con un count de los registros
+```php
+<?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+include("conexion.php");
+
+if (!$conexion) {
+    die("Error de conexión: " . mysqli_connect_error());
+}
+
+function obtenerConteo($conexion, $sql, $campo) {
+    $resultado = $conexion->query($sql);
+
+    if (!$resultado) {
+        die("Error en la consulta: " . $conexion->error);
+    }
+
+    $fila = $resultado->fetch_assoc();
+    return $fila[$campo];
+}
+
+$sqlTotal = "
+    SELECT COUNT(*) AS total 
+    FROM lecturas_sensores
+";
+
+$sqlNormales = "
+    SELECT COUNT(*) AS normales
+    FROM lecturas_sensores
+    WHERE lectura1 >= 60 AND lectura1 <= 100
+";
+
+$sqlAdvertencias = "
+    SELECT COUNT(*) AS advertencias
+    FROM lecturas_sensores
+    WHERE lectura1 >= 101 AND lectura1 <= 150
+";
+
+$sqlCriticos = "
+    SELECT COUNT(*) AS criticos
+    FROM lecturas_sensores
+    WHERE lectura1 >= 151
+";
+
+$sqlFueraRango = "
+    SELECT COUNT(*) AS fuera_rango
+    FROM lecturas_sensores
+    WHERE lectura1 < 60
+";
+
+$sqlPendientes = "
+    SELECT COUNT(*) AS pendientes 
+    FROM lecturas_sensores 
+    WHERE enviado_central = 0
+";
+
+$total = obtenerConteo($conexion, $sqlTotal, "total");
+$normales = obtenerConteo($conexion, $sqlNormales, "normales");
+$advertencias = obtenerConteo($conexion, $sqlAdvertencias, "advertencias");
+$criticos = obtenerConteo($conexion, $sqlCriticos, "criticos");
+$fuera_rango = obtenerConteo($conexion, $sqlFueraRango, "fuera_rango");
+$pendientes = obtenerConteo($conexion, $sqlPendientes, "pendientes");
+?>
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Resumen RaspyAlarma</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f8;
+            margin: 20px;
+        }
+
+        h1 {
+            color: #1f3c88;
+        }
+
+        .contenedor {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .caja {
+            background: white;
+            border: 1px solid #ccc;
+            padding: 20px;
+            margin-bottom: 15px;
+            font-size: 20px;
+            width: 280px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .numero {
+            font-size: 36px;
+            font-weight: bold;
+            color: #1f3c88;
+            margin-top: 10px;
+        }
+
+        .texto-pequeno {
+            font-size: 14px;
+            color: #666;
+            margin-top: 8px;
+        }
+
+        .total {
+            border-left: 8px solid #1f3c88;
+        }
+
+        .normal {
+            border-left: 8px solid #28a745;
+        }
+
+        .advertencia {
+            border-left: 8px solid #ffc107;
+        }
+
+        .critico {
+            border-left: 8px solid #dc3545;
+        }
+
+        .fuera-rango {
+            border-left: 8px solid #6c757d;
+        }
+
+        .pendiente {
+            border-left: 8px solid #ffc107;
+        }
+    </style>
+</head>
+
+<body>
+
+<h1>Resumen del sistema RaspyAlarma</h1>
+
+<div class="contenedor">
+
+    <div class="caja total">
+        Total de registros
+        <div class="numero"><?php echo $total; ?></div>
+    </div>
+
+    <div class="caja normal">
+        Lecturas normales
+        <div class="numero"><?php echo $normales; ?></div>
+        <div class="texto-pequeno">Entre 60 y 100 BPM</div>
+    </div>
+
+    <div class="caja advertencia">
+        Advertencias
+        <div class="numero"><?php echo $advertencias; ?></div>
+        <div class="texto-pequeno">Entre 101 y 150 BPM</div>
+    </div>
+
+    <div class="caja critico">
+        Alertas críticas
+        <div class="numero"><?php echo $criticos; ?></div>
+        <div class="texto-pequeno">151 BPM o más</div>
+    </div>
+
+    <div class="caja fuera-rango">
+        Fuera de rango
+        <div class="numero"><?php echo $fuera_rango; ?></div>
+        <div class="texto-pequeno">Menos de 60 BPM</div>
+    </div>
+
+    <div class="caja pendiente">
+        Pendientes de enviar al servidor central
+        <div class="numero"><?php echo $pendientes; ?></div>
+    </div>
+
+</div>
+
+</body>
+</html>
+
+<?php
+$conexion->close();
+?>
+```
+![alt text](resumenLecturas.png)
+
+
+
+
+
+
+
+- Un panel centralizado para acceder a todos los panels
+1. En cada archivo incluimos "include: include/navbar/php" para hacer un pointer al archivo lógico
+2. Creamos la lógica
+```
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+$paginas = [
+    [
+        "id" => "lecturas",
+        "titulo" => "Todas las lecturas",
+        "descripcion" => "Ver todos los registros almacenados en RaspyAlarma.",
+        "archivo" => "lecturas.php",
+        "clase" => "azul"
+    ],
+    [
+        "id" => "ultimas",
+        "titulo" => "Últimas 10 lecturas",
+        "descripcion" => "Consultar las lecturas más recientes.",
+        "archivo" => "ultimas_lecturas.php",
+        "clase" => "verde"
+    ],
+    [
+        "id" => "resumen",
+        "titulo" => "Resumen del sistema",
+        "descripcion" => "Ver normales, advertencias, críticas, fuera de rango y pendientes.",
+        "archivo" => "resumen.php",
+        "clase" => "amarillo"
+    ]
+];
+?>
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel completo RaspyAlarma</title>
+
+    <style>
+        .simple-nav {
+        display: flex;
+        gap: 10px;
+        background: #1f3c88;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+    .nav-link {
+        color: white;
+        text-decoration: none;
+        padding: 8px 15px;
+        border-radius: 4px;
+        font-weight: bold;
+        font-family: Arial, sans-serif;
+    }
+    .nav-link:hover {
+        background: rgba(255,255,255,0.2);
+    }
+    .azul { border-bottom: 3px solid #add8e6; }
+    .verde { border-bottom: 3px solid #28a745; }
+    .amarillo { border-bottom: 3px solid #ffc107; }
+    </style>
+
+
+</head>
+
+<body>
+<nav class="simple-nav">
+    <a href="listar.php" class="nav-link azul">Todas las Lecturas</a>
+    <a href="ultimas_lecturas.php" class="nav-link verde">Últimas 10</a>
+    <a href="resumen.php" class="nav-link amarillo">Resumen</a>
+</nav>
+
+</body>
+</html>
+
+```
+
+![alt text](panelFinal.png)
